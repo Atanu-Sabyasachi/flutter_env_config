@@ -24,7 +24,7 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   
 executables:
-  generate-config: "generate_config.dart"
+  generate-config: "bin/generate_config.dart"
 
 flutter:
   uses-material-design: true
