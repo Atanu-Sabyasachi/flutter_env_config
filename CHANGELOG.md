@@ -2,6 +2,10 @@
 
 All notable changes to this package will be documented in this file.
 
+## [1.0.2]
+### Fixed
+- `README.md` file updated.
+
 ## [1.0.1]
 ### Fixed
 - Documentation and `README.md` file is well organised and structured properly.
