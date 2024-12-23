@@ -3,13 +3,13 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' as root_bundle;
 import 'package:flutter_env_config/enums/env_enum.dart';
-import 'package:flutter_env_config/flutter_env_config.dart';
 import 'package:flutter_env_config/models/analytics_config.dart';
 import 'package:flutter_env_config/models/api_config.dart';
 import 'package:flutter_env_config/models/ci_cd/build_config.dart';
 import 'package:flutter_env_config/models/ci_cd/ci_cd_config.dart';
 import 'package:flutter_env_config/models/ci_cd/deployment_config.dart';
 import 'package:flutter_env_config/models/ci_cd/testing_config.dart';
+import 'package:flutter_env_config/models/env_config.dart';
 import 'package:flutter_env_config/models/features_config.dart';
 import 'package:flutter_env_config/models/localization_config.dart';
 import 'package:flutter_env_config/models/logging_config.dart';
@@ -20,12 +20,34 @@ import 'package:flutter_env_config/models/third_oarty_services/firebase_config.d
 import 'package:flutter_env_config/models/third_oarty_services/razor_pay_config.dart';
 import 'package:flutter_env_config/models/third_oarty_services/stripe_config.dart';
 import 'package:flutter_env_config/models/third_oarty_services/third_party_services_config.dart';
+import 'package:flutter_env_config/src/env_parser.dart';
+// ... other imports
 
 /// Singleton manager for handling environment-specific configurations.
 ///
 /// The `EnvironmentManager` class allows you to load configurations from files
 /// (JSON/YAML), manage the current environment, and observe changes to the
 /// configuration in real time using [ValueNotifier].
+///
+/// Example usage:
+///
+/// ```dart
+/// // Initialize the environment manager (usually in your main function).
+/// await EnvironmentManager().loadFromFile(
+///   'assets/config/env_config.json',
+///   targetEnvironment: Environment.dev,
+/// );
+///
+/// // Access configuration data.
+/// final baseUrl = EnvironmentManager.environmentData.api.baseUrl;
+///
+/// // Listen for configuration changes.
+/// EnvironmentManager().currentConfigNotifier.addListener(() {
+///   final currentConfig = EnvironmentManager().currentConfig;
+///   // Update UI or perform other actions based on the new configuration.
+///   print('New base URL: ${currentConfig.api.baseUrl}');
+/// });
+/// ```
 class EnvironmentManager {
   /// Factory constructor to ensure a single instance.
   factory EnvironmentManager() => _instance;
@@ -130,39 +152,67 @@ class EnvironmentManager {
   EnvironmentConfig get currentConfig => _currentConfigNotifier.value;
 
   /// Observable configuration notifier.
+  ///
+  /// Listen to this notifier to be notified of changes to the environment
+  /// configuration.
+  ///
+  /// Example:
+  /// ```dart
+  /// EnvironmentManager().currentConfigNotifier.addListener(() {
+  ///   final currentConfig = EnvironmentManager().currentConfig;
+  ///   print('New base URL: ${currentConfig.api.baseUrl}');
+  /// });
+  /// ```
   ValueNotifier<EnvironmentConfig> get currentConfigNotifier =>
       _currentConfigNotifier;
 
   /// Static getter for accessing environment data directly.
+  ///
+  /// This provides a convenient way to access configuration values without
+  /// needing to use the notifier. However, it will not reflect real-time
+  /// changes to the configuration.
+  ///
+  /// Example:
+  /// ```dart
+  /// final baseUrl = EnvironmentManager.environmentData.api.baseUrl;
+  /// ```
   static EnvironmentConfig get environmentData =>
       _instance._currentConfigNotifier.value;
 
   /// Loads environment configuration from a file.
   ///
-  /// - [path]: Relative path to the configuration file.
+  /// - [path]: Relative path to the configuration file (e.g.,
+  ///   'assets/config/env_config.json').
   /// - [format]: Format of the configuration file (`json` or `yaml`).
   ///   Defaults to `json`.
-  /// - [targetEnvironment]: The environment to load, such as `dev`, `staging`,
-  ///   or `prod`.
+  /// - [targetEnvironment]: The environment to load (e.g., `Environment.dev`,
+  ///   `Environment.staging`, `Environment.prod`).
+  ///
+  /// Example usage:
+  ///
+  /// ```dart
+  /// await EnvironmentManager().loadFromFile(
+  ///   'assets/config/env_config.json',
+  ///   targetEnvironment: Environment.dev,
+  /// );
+  /// ```
   ///
   /// Throws:
-  /// - Exception if the file content cannot be parsed.
-  /// - Exception if the configuration for the specified environment is not found.
+  /// - [Exception] if the file content cannot be parsed.
+  /// - [Exception] if the configuration for the specified environment is not
+  ///   found.
   Future<void> loadFromFile(
     String path, {
     String format = 'json',
     required Environment targetEnvironment,
   }) async {
     try {
-      // Load the file content
       final fileContent = await root_bundle.rootBundle.loadString(path);
       log('Loaded file content: $fileContent');
 
-      // Parse the configuration file
       final parsedConfig = EnvParser.parse(fileContent, format: format);
       log('Parsed configuration: $parsedConfig');
 
-      // Extract the environment-specific configuration
       final environmentConfig =
           parsedConfig[targetEnvironment.name.toLowerCase()];
 
@@ -171,7 +221,6 @@ class EnvironmentManager {
             'Environment configuration for ${targetEnvironment.name} not found');
       }
 
-      // Update the notifier with the new configuration
       _currentConfigNotifier.value =
           EnvironmentConfig.fromJson(environmentConfig as Map<String, dynamic>);
     } catch (e) {
@@ -185,6 +234,15 @@ class EnvironmentManager {
   /// updating configuration at runtime.
   ///
   /// - [json]: A Map representing the environment configuration.
+  ///
+  /// Example:
+  /// ```dart
+  /// final configMap = {
+  ///   "api": {"baseUrl": "[invalid URL removed]", "timeout": 5000},
+  ///   "features": {"featureOneEnabled": false}
+  /// };
+  /// EnvironmentManager().loadFromJson(configMap);
+  /// ```
   void loadFromJson(Map<String, dynamic> json) {
     _currentConfigNotifier.value = EnvironmentConfig.fromJson(json);
   }

@@ -13,21 +13,118 @@ A powerful and flexible environment configuration management package for Flutter
 - Supports CI/CD configurations, API settings, theming, analytics, and more.
 - Easy-to-use methods for testing and environment overrides.
 
-## Installation
+With this package, you can:
 
-Add the following line to your `pubspec.yaml`:
+**General Configurations**:
+- Define environments such as dev, staging, and prod.
+- Access environment-specific settings like name, api, and features.
+
+**API Settings**:
+- Configure the base URL and timeout for API calls.
+
+**CI/CD Integration**:
+- Add CI/CD variables like API keys and database URLs.
+- Track builds with buildId, branchName, and commitHash.
+- Set up deployment settings, including rollback on failure.
+- Enable unit, integration, and end-to-end tests with threshold configurations.
+
+**Feature Toggles**:
+- Enable or disable beta features dynamically.
+- Use feature flags to control app features at runtime.
+
+**Logging**:
+- Manage application logging with options for log levels (debug, info, etc.).
+- Enable or disable logging.
+
+**Security**:
+- Enable encryption for sensitive data.
+- Support secure storage and SSL pinning.
+
+**Analytics**:
+- Configure analytics with API keys.
+- Enable or disable user tracking.
+
+**Localization**:
+- Set a default locale (e.g., en) and define supported locales (e.g., en, fr, es).
+
+**Theming**:
+- Define primary and secondary colors for the app.
+- Customize fonts with a specified font family.
+
+**Third-Party Integrations**:
+- Integrate Firebase with options like apiKey, projectId, and authDomain.
+- Support payment gateways like Razorpay and Stripe.
+
+**Scheduled Tasks**:
+- Automate sync and cleanup tasks with defined intervals.
+
+## How to Use
+Follow these steps to seamlessly integrate environment-specific configurations into your Flutter app:
+
+- **Install the Package**
+
+  Add the package to your `pubspec.yaml`:
+```yaml
+    dependencies:  
+      flutter_env_config: <latest-version> 
+``` 
+- **Generate Config Files**
+
+  Run the following command in your terminal:
+```yaml
+    generate-config
+```  
+  This will create an `assets` folder in your project with two files:
+
+  `config.json` & `config.yaml`
+
+- **Register Assets**
+
+  Include the `assets` folder in your pubspec.yaml:
 
 ```yaml
-dependencies:
-  flutter_env_config: <version>
+flutter:  
+  assets:  
+    - assets/  
 ```
-Run
-```
-flutter pub get
-```
+- **Initialize Before runApp**
 
-## Usage
-Import the Package
+  Set up the configuration during app startup before runApp():
+
+```dart
+    await FlutterEnvConfig.init(  
+      configFile: 'assets/config.json',  
+      targetEnvironment: Environment.dev,  
+    );
+    runApp(MyApp());
 ```
-import 'package:flutter_env_config/flutter_env_config.dart';
-```
+- **Access Configuration**
+
+  Easily access the environment data anywhere in your app:
+
+```dart
+    EnvironmentConfig config = EnvironmentManager.environmentData;
+``` 
+📝 **Notes**
+
+    If the assets folder is newly generated, rerun your app to load the files.
+    Modify values in config.json or config.yaml as needed, but rerun the app afterward to apply changes.
+
+## Contributing
+Contributions are welcome! If you find bugs or have feature suggestions, feel free to create an issue or submit a pull request. Make sure to follow the contribution guidelines.
+
+- Report bugs and request features via [GitHub Issues](https://github.com/Atanu-Sabyasachi/flutter_env_config/issues)
+- Engage in discussions and help users solve their problems/questions in the [Discussions](https://github.com/discussions)
+
+## License
+This package is licensed under the MIT License. See the LICENSE file for more details.
+
+Happy coding! 🎉
+
+This `README.md` covers installation, usage, features, property descriptions, and customization, making it beginner-friendly and informative for all users of the package.
+
+-------------------------------------------------------------
+
+**Version**: 1.0.1  
+**Author**: Atanu Sabyasachi Jena  
+**License**: MIT
